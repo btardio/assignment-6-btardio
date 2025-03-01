@@ -1,0 +1,6 @@
+menu "AESD Packages"
+    source "package/aesd-assignments/Config.in"
+endmenu
+menu "My OpenSSL"
+    source "package/myopenssl/Config.in"
+endmenu
