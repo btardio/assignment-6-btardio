@@ -5,7 +5,7 @@
 
 source shared.sh
 
-EXTERNAL_REL_BUILDROOT=../base_external
+EXTERNAL_REL_BUILDROOT=/repo/base_external
 git submodule init
 git submodule sync
 git submodule update
@@ -20,7 +20,8 @@ fi
 
 
 mkdir -p buildroot
-cp buildroot_working_menuconfig.config buildroot/.config
+cp /repo/buildroot_working_menuconfig.config /repo/buildroot/.config
+#p /repo/new_hardware_new_config /repo/buildroot/.config
 
 if [ ! -d "arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu" ]; then
     wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
