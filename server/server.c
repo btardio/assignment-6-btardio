@@ -15,7 +15,7 @@
 // http://gnu.cs.utah.edu/Manuals/glibc-2.2.3/html_chapter/libc_16.html
 
 // NOTE: using AF_INET is not bidirectional
-
+struct sockaddr_in sockaddrs[FD_SETSIZE];
 
 void sig_handler(int signo)
 {
@@ -53,8 +53,9 @@ int
 read_from_client (int filedes)
 {
   char buffer[512];
+  //char writebuffer[512];
   int nbytes;
-//  int sbytes;
+  int sbytes;
 
   FILE *file_pointer;
 
@@ -73,19 +74,36 @@ read_from_client (int filedes)
   else
     {
       
-      fprintf (stderr, "%s", buffer);
+      //fprintf (stderr, "%s", buffer);
 
       //return 0;
       // write to same FD
+      //buffer[nbytes-1] = '~';    
+      //fprintf(stderr, ">>>> %s", buffer);
       
       
-      //sbytes = write(filedes, buffer, 512);
+      // i dont think you're supposed to be writing back to this
+      sbytes = write(filedes, buffer, nbytes);
+      
+
+      if (sbytes < 0){
+      
+          perror("write");
+          exit(EXIT_FAILURE);
+      }
+      //int s_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+      //int c_rval = connect( filedes, (struct sockaddr *) &sockaddrs[filedes], sizeof(sockaddrs[filedes]));
 
 
-      //if (sbytes < 0){
-      //    perror("write");
-      //    exit(EXIT_FAILURE);
-      //}
+      //if (c_rval < 0) {
+      //    log_and_print(LOG_ERR, "Unable to connect.\n", NULL);
+      //    return -1;
+     // }
+
+
+
+// ~~~
 
 
       // end write to same FD
@@ -266,6 +284,7 @@ int pmain(void) {
           exit (EXIT_FAILURE);
         }
 
+
       /* Service all the sockets with input pending. */
       for (int i = 0; i < FD_SETSIZE; ++i)
         if (FD_ISSET (i, &read_fd_set))
@@ -277,10 +296,10 @@ int pmain(void) {
                 s_size = sizeof (addr_connector);
 
                 new = accept(s_fd, (struct sockaddr*) &addr_connector, (unsigned int *) &s_size); //(struct sockaddr *) &addr_connector, NULL);
-
                 if ( new < 0 ) {
                     log_and_print(LOG_ERR, "Unable to accept.\n", NULL);
-                }
+                    
+                } else {
 
 //                new = accept (sock,
 //                              (struct sockaddr *) &clientname,
@@ -296,9 +315,12 @@ int pmain(void) {
                          inet_ntoa (addr_connector.sin_addr),
                          ntohs (addr_connector.sin_port));
                          */
+                    sockaddrs[new] = addr_connector;
+                    //FD_SET (new, &active_fd_set);
+                }
                 FD_SET (new, &active_fd_set);
               }
-            else
+              else
               {
                 /* Data arriving on an already-connected socket. */
                 if (read_from_client (i) < 0)
