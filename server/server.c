@@ -167,7 +167,9 @@ void *safe_malloc(size_t n)
 }
 
 
-int main(void) {
+int pmain(void) {
+
+    
 
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
         log_and_print(LOG_ERR, "Unable to create signal handler.\n", NULL);
@@ -340,5 +342,19 @@ int main(void) {
 
 
 
+
+}
+
+int main(void){
+
+    pid_t p = fork();
+
+    if ( p == 0 ) {
+        pmain();
+    }
+    else {
+        //waitpid(p, NULL, 0);
+
+    }
 
 }
