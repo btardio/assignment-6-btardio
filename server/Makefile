@@ -4,7 +4,7 @@ UNAME_P := $(shell uname -p)
 
 COMPILER_EXECUTABLE=$(CROSS_COMPILE)gcc
 
-SERVER_OBJ = -o server server.c 
+SERVER_OBJ = -o aesdsocket server.c 
 CLIENT_OBJ = -o client client.c
 
 clean:
