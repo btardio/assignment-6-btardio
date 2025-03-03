@@ -1,0 +1,96 @@
+#include <stdio.h>
+//#include <stdlib.h>
+//#include <sys/socket.h>
+//#include <sys/types.h>
+//#include <syslog.h>
+//#include <stdarg.h>
+//#include <errno.h>
+//#include <string.h>
+//#include <unistd.h>
+/*
+void log_and_print(int priority, char* fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+    printf("Errno: %d\n", errno);
+    perror("Error:");
+    fflush(stdout);
+
+    va_start(args, fmt);
+    vsyslog(priority, fmt, args);
+    va_end(args);
+}
+*/
+
+//struct sockaddr sock_address = { AF_INET, "10005" };
+/*
+void *safe_malloc(size_t n)
+{
+    void *p = malloc(n);
+    if (p == NULL) {
+        log_and_print(LOG_ERR, "Fatal: failed to allocate %zu bytes.\n", n);
+        abort();
+    }
+    return p;
+}
+*/
+
+int main(void) {
+	printf("Server program assignment 5\n");
+
+/*
+    struct sockaddr sock_address;
+
+
+    //sock_address.sa_data = (char*) safe_malloc(sizeof(char)*6);
+    strncpy(sock_address.sa_data, "10000\0", 6);
+    sock_address.sa_family = AF_INET;
+    
+
+    // socket()
+    //
+    //
+    //
+
+    int s_fd = socket(PF_INET, SOCK_STREAM, 0);
+
+    if (s_fd == -1) {
+        log_and_print(LOG_ERR, "Unable to create socket.\n", NULL);
+        return -1;
+    }
+
+
+    int bind_rval = bind(s_fd, &sock_address, sizeof(struct sockaddr));
+
+    if ( bind_rval == -1 ) {
+        log_and_print(LOG_ERR, "Unable to bind to port.\n", NULL);
+    }
+*/
+    // bind (sockfd, sockaddr-sever)
+    //
+    //
+    //
+
+
+
+    // listen (sockfd)
+    //
+    //
+    // 
+
+
+
+
+    // accept
+    //
+    //
+    //
+
+
+
+
+
+
+}
