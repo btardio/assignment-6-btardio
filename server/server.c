@@ -73,7 +73,7 @@ read_from_client (int filedes)
   else
     {
       
-      fprintf (stderr, "Server: got message: `%s'\n", buffer);
+      fprintf (stderr, "%s", buffer);
 
       //return 0;
       // write to same FD
@@ -125,7 +125,7 @@ read_from_client (int filedes)
 
 
 
-/*
+
 int
 make_socket (uint16_t port)
 {
@@ -150,7 +150,7 @@ make_socket (uint16_t port)
 
   return sock;
 }
-*/
+
 
 
 
@@ -181,13 +181,13 @@ int pmain(void) {
     }
 
 
-    printf("Server program assignment 5\n");
+    //printf("Server program assignment 5\n");
 
     size_t s_size;
 
     struct in_addr my_s_addr;
 
-    struct sockaddr_in sock_address;
+    //struct sockaddr_in sock_address;
 
     fd_set active_fd_set, read_fd_set;
 
@@ -196,18 +196,19 @@ int pmain(void) {
 
     //inet_aton("127.0.0.1", &sock_address.s_addr);
     
-    sock_address.sin_port = 9000;
+    //sock_address.sin_port = 9000;
 
     //strncpy(&sock_address.sin_port, "10000\0", 6);
-    sock_address.sin_family = AF_INET;
-    sock_address.sin_addr = my_s_addr;    
+    //sock_address.sin_family = AF_INET;
+    //sock_address.sin_addr = my_s_addr;    
 
     // socket()
     //
     //
     //
 
-    int s_fd = socket(AF_INET, SOCK_STREAM, 0);
+    //int s_fd = socket(PF_INET, SOCK_STREAM, 0);
+    int s_fd = make_socket(9000);
 
     if (s_fd < 0) {
         log_and_print(LOG_ERR, "Unable to create socket.\n", NULL);
@@ -215,17 +216,17 @@ int pmain(void) {
     }
 
 
-    int b_rval = bind(s_fd, (struct sockaddr *) &sock_address, sizeof(struct sockaddr_in));
+//    int b_rval = bind(s_fd, (struct sockaddr *) &sock_address, sizeof(struct sockaddr_in));
 
-    if ( b_rval < 0 ) {
-        log_and_print(LOG_ERR, "Unable to bind to port.\n", NULL);
-    }
+//    if ( b_rval < 0 ) {
+//        log_and_print(LOG_ERR, "Unable to bind to port.\n", NULL);
+//    }
 
     // bind (sockfd, sockaddr-sever)
     //
     //
     //
-
+    
     int l_rval = listen(s_fd, 3);
 
 
@@ -289,11 +290,12 @@ int pmain(void) {
 //                    perror ("accept");
 //                    exit (EXIT_FAILURE);
 //                  }
-
+/*
                 fprintf (stderr,
                          "Server: connect from host %s, port %hd.\n",
                          inet_ntoa (addr_connector.sin_addr),
                          ntohs (addr_connector.sin_port));
+                         */
                 FD_SET (new, &active_fd_set);
               }
             else
