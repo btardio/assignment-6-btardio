@@ -52,6 +52,7 @@ void log_and_print(int priority, char* fmt, ...) {
 int
 read_from_client (int filedes)
 {
+  char fbuffer[99999];
   char buffer[512];
   //char writebuffer[512];
   int nbytes;
@@ -74,6 +75,36 @@ read_from_client (int filedes)
   else
     {
       
+
+      file_pointer = fopen("/var/tmp/aesdsocketdata", "a");
+
+      if ( file_pointer == NULL ){
+          log_and_print(LOG_ERR, "Error writing to file.\n", NULL);
+          return -1;
+      }
+
+      if (fputs(buffer, file_pointer) == EOF) {
+          perror("Error writing to file");
+          fclose(file_pointer);
+          return -1;
+      }
+
+      if (fputs(buffer, file_pointer) == EOF) {
+          perror("Error writing to file");
+          fclose(file_pointer);
+          return -1;
+      }
+/*
+      if (fflush(file_pointer) == EOF) {
+          perror("Error flushing.");
+          return -1;
+      }
+*/
+      if (fclose(file_pointer) == EOF) {
+          perror("Error closing the file");
+          return -11;
+      }
+
       //fprintf (stderr, "%s", buffer);
 
       //return 0;
@@ -81,9 +112,31 @@ read_from_client (int filedes)
       //buffer[nbytes-1] = '~';    
       //fprintf(stderr, ">>>> %s", buffer);
       
-      
+      FILE* file = fopen("/var/tmp/aesdsocketdata", "r");
+
+      if (file == NULL) {
+        perror("Error opening file");
+        return 1;
+      }
+
+      fseek(file, 0, SEEK_END);
+      long file_size = ftell(file);
+      fseek(file, 0, SEEK_SET);
+
+      size_t bytes_read = fread(fbuffer, 1, file_size, file);
+      if (bytes_read != (size_t)file_size) {
+        perror("Error reading file");
+        //free(fbuffer);
+        fclose(file);
+        return 1;
+      }
+
+      fbuffer[file_size] = '\0';
+
+      fclose(file);
+
       // i dont think you're supposed to be writing back to this
-      sbytes = write(filedes, buffer, nbytes);
+      sbytes = write(filedes, fbuffer, file_size);
       
 
       if (sbytes < 0){
@@ -106,8 +159,9 @@ read_from_client (int filedes)
 // ~~~
 
 
-      // end write to same FD
 
+      // end write to same FD
+/*
       file_pointer = fopen("/var/tmp/aesdsocketdata", "a");
 
       if ( file_pointer == NULL ){
@@ -121,21 +175,22 @@ read_from_client (int filedes)
           return -1;
       }
 
-      if (fputs("\n", file_pointer) == EOF) {
+      if (fputs(buffer, file_pointer) == EOF) {
           perror("Error writing to file");
           fclose(file_pointer);
           return -1;
       }
-/*
-      if (fflush(file_pointer) == EOF) {
-          perror("Error flushing.");
-          return -1;
-      }
-*/
       if (fclose(file_pointer) == EOF) {
           perror("Error closing the file");
           return -11;
       }
+
+*/
+
+
+
+
+
 
       return 0;
     }
@@ -370,6 +425,11 @@ int pmain(void) {
 }
 
 int main(void){
+
+    if (remove("/var/tmp/aesdsocketdata") == 0) {
+    } else {
+        perror("Error deleting file");
+    }
 
     pid_t p = fork();
 
