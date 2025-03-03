@@ -194,7 +194,7 @@ int main(void) {
 
     //inet_aton("127.0.0.1", &sock_address.s_addr);
     
-    sock_address.sin_port = 10000;
+    sock_address.sin_port = 9000;
 
     //strncpy(&sock_address.sin_port, "10000\0", 6);
     sock_address.sin_family = AF_INET;
