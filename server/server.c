@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 
+#define BUFFER_SIZE 999999
 
 // http://gnu.cs.utah.edu/Manuals/glibc-2.2.3/html_chapter/libc_16.html
 
@@ -52,8 +53,8 @@ void log_and_print(int priority, char* fmt, ...) {
 int
 read_from_client (int filedes)
 {
-  char fbuffer[99999];
-  char buffer[512];
+  char fbuffer[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE];
   //char writebuffer[512];
   int nbytes;
   int sbytes;
@@ -61,7 +62,7 @@ read_from_client (int filedes)
   FILE *file_pointer;
 
 
-  nbytes = read (filedes, buffer, 512);
+  nbytes = read (filedes, buffer, BUFFER_SIZE);
 
   if (nbytes < 0)
     {
@@ -89,17 +90,6 @@ read_from_client (int filedes)
           return -1;
       }
 
-      if (fputs(buffer, file_pointer) == EOF) {
-          perror("Error writing to file");
-          fclose(file_pointer);
-          return -1;
-      }
-/*
-      if (fflush(file_pointer) == EOF) {
-          perror("Error flushing.");
-          return -1;
-      }
-*/
       if (fclose(file_pointer) == EOF) {
           perror("Error closing the file");
           return -11;
