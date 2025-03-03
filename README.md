@@ -1,10 +1,6 @@
 # Aside
 
-Stay with a Sebastian kernel. The picture you see is one of the greater accomplishments of Linux, Torvalds accomplished making a kernel that wasn't 
-an alan turing design for my little pony's MIPS. The alan turing tape doesn't go back on Dennis Ritchie straight shooter stallion kernels.
-
 https://www.reddit.com/r/linux/comments/rhjtt8/sebastian_hetze_linus_torvalds_and_dennis_ritchie/#lightbox
-
 
 
 sudo docker build -t myubuntu . && sudo docker container run -it -v /var/run/docker.sock:/var/run/docker.sock -v ./:/repo myubuntu /bin/bash
