@@ -8,7 +8,7 @@ SERVER_OBJ = -o aesdsocket server.c
 CLIENT_OBJ = -o client client.c
 
 clean:
-	rm -f server
+	rm -f aesdsocket
 	rm -f client
 
 vars:
