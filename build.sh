@@ -5,7 +5,7 @@
 
 source shared.sh
 
-EXTERNAL_REL_BUILDROOT=/repo/base_external
+EXTERNAL_REL_BUILDROOT=base_external
 git submodule init
 git submodule sync
 git submodule update
@@ -20,7 +20,7 @@ fi
 
 
 mkdir -p buildroot
-cp /repo/buildroot_working_menuconfig.config /repo/buildroot/.config
+cp buildroot_working_menuconfig.config buildroot/.config
 #p /repo/new_hardware_new_config /repo/buildroot/.config
 
 if [ ! -d "arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu" ]; then
