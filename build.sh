@@ -5,7 +5,7 @@
 
 source shared.sh
 
-EXTERNAL_REL_BUILDROOT=base_external
+EXTERNAL_REL_BUILDROOT=../base_external
 git submodule init
 git submodule sync
 git submodule update
@@ -17,10 +17,11 @@ then
         EXTERNAL_REL_BUILDROOT=$1
         echo "Using passed directory ${EXTERNAL_REL_BUILDROOT} for BR2_EXTERNAL"
 fi
-
+ 
 
 mkdir -p buildroot
 cp buildroot_working_menuconfig.config buildroot/.config
+
 #p /repo/new_hardware_new_config /repo/buildroot/.config
 
 if [ ! -d "arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu" ]; then
