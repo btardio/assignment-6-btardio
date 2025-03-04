@@ -7,8 +7,7 @@
 
 #TODO: Fill up the contents below in order to reference your assignment 3 git contents
 
-# assignment 3 branch: assignment 4
-AESD_ASSIGNMENTS_VERSION = '31eb4f8d274e72bb2256ce9f21aebaaf116a5013'
+AESD_ASSIGNMENTS_VERSION = 'e3c364f46989936a2e9d4b71129adac72f8bc9f9'
 
 # Note: Be sure to reference the *ssh* repository URL here (not https) to work properly
 # with ssh keys and the automated build/test system.
@@ -36,7 +35,8 @@ define AESD_ASSIGNMENTS_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 $(@D)/finder-app/writer $(TARGET_DIR)/bin
 	$(INSTALL) -m 0755 $(@D)/finder-app/finder-test.sh $(TARGET_DIR)/bin
 	$(INSTALL) -m 0755 $(@D)/finder-app/finder.sh $(TARGET_DIR)/bin
-	$(INSTALL) -m 0755 $(@D)/server/server $(TARGET_DIR)/bin
+	$(INSTALL) -m 0755 $(@D)/server/aesdsocket $(TARGET_DIR)/bin
+	$(INSTALL) -m 0755 $(@D)/server/aesdsocket-start-stop $(TARGET_DIR)/etc/init.d/S99aesdsocket
 
 endef
 
