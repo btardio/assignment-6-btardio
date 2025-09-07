@@ -11,6 +11,8 @@
 
 #define BUFFER_SIZE 999999
 
+#define SOCKET_PORT 9000
+
 // http://gnu.cs.utah.edu/Manuals/glibc-2.2.3/html_chapter/libc_16.html
 
 // NOTE: using AF_INET is not bidirectional
@@ -59,6 +61,8 @@ read_from_client (int filedes)
 
   FILE *file_pointer;
 
+  bzero(fbuffer, BUFFER_SIZE);
+  bzero(buffer, BUFFER_SIZE);
 
   nbytes = read (filedes, buffer, BUFFER_SIZE);
 
@@ -71,6 +75,9 @@ read_from_client (int filedes)
   else if (nbytes == 0)
     /* End-of-file. */
     return -1;
+  else if (nbytes == 1) {
+      return 0;
+  }
   else
     {
       
@@ -191,7 +198,7 @@ int pmain(void) {
 
     inet_pton(AF_INET, "127.0.0.1", &my_s_addr);
 
-    int s_fd = make_socket(9000);
+    int s_fd = make_socket(SOCKET_PORT);
 
     if (s_fd < 0) {
         log_and_print(LOG_ERR, "Unable to create socket.\n", NULL);
@@ -215,15 +222,17 @@ int pmain(void) {
   FD_ZERO (&active_fd_set);
   FD_SET (s_fd, &active_fd_set);
 
+  int n_reads = 0;
+
   while (1)
     {
       /* Block until input arrives on one or more active sockets. */
       read_fd_set = active_fd_set;
       if (select (FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0)
-        {
-          perror ("select");
-          exit (EXIT_FAILURE);
-        }
+      {
+        perror ("select");
+        exit (EXIT_FAILURE);
+      }
 
 
       /* Service all the sockets with input pending. */
@@ -247,6 +256,8 @@ int pmain(void) {
               }
               else
               {
+                n_reads = n_reads + 1;  
+                printf("%d\n", n_reads);
                 /* Data arriving on an already-connected socket. */
                 if (read_from_client (i) < 0)
                   {

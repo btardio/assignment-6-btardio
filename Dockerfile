@@ -53,14 +53,14 @@ RUN echo "set expandtab" >> /root/.vimrc
 RUN echo "export PATH=$PATH:/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/" >> /root/.bashrc
 
 RUN mkdir -p /root/.ssh
-COPY id_ed25519 /root/.ssh/id_ed25519
+#COPY id_ed25519 /root/.ssh/id_ed25519
 
 
 RUN chmod +x /entrypoint.sh
 
 
 RUN apt-get install -y sshpass
-
+RUN apt-get install -y ncat
 
 ENTRYPOINT ["/entrypoint.sh"]
 

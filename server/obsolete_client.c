@@ -10,6 +10,7 @@
 //#include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define SOCKET_PORT 19000
 
 int
 make_socket (uint16_t port)
@@ -81,7 +82,7 @@ int main(void) {
 
     //inet_aton("127.0.0.1", &sock_address.s_addr);
     
-    sock_address.sin_port = 9000;
+    sock_address.sin_port = SOCKET_PORT;
 
     //strncpy(&sock_address.sin_port, "10000\0", 6);
     sock_address.sin_family = AF_INET;
