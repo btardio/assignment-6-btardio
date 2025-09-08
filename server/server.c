@@ -62,6 +62,13 @@ void log_and_print(int priority, char* fmt, ...) {
 
 
 
+/*
+ * Note: this is concurrent but simply blocking on file open
+ * improvements could write to file at seek position given a
+ * file descriptor, ie: seek to position 1000 and write over
+ * for 1 file descriptor and seek to position 3000 for another
+ * file descriptor and write over
+ */
 int
 read_from_client (const int filedes, char* buffer, int nbytes)
 {
@@ -279,7 +286,7 @@ int pmain(void) {
   int n_reads = 0;
 
   struct entry *threads[65535];
-
+  int status = 0;
   while (1)
     {
       /* Block until input arrives on one or more active sockets. */
@@ -294,7 +301,7 @@ int pmain(void) {
       /* Service all the sockets with input pending. */
       for (int i = 0; i < FD_SETSIZE; ++i)
       {
-
+        //int status = 0;
         if (FD_ISSET (i, &read_fd_set))
           {
               if (i == s_fd)
@@ -327,18 +334,19 @@ int pmain(void) {
                 // fork  
                 n_reads = n_reads + 1;  
                 printf("%d\n", n_reads);
-                int status;
+                //int status;
                 /* Data arriving on an already-connected socket. */
 
                 char* read_buffer = malloc(sizeof(char)*BUFFER_SIZE+1);
                 bzero(read_buffer, BUFFER_SIZE+1);
                 int nbytes = read (i, read_buffer, BUFFER_SIZE);
 #ifdef FORKING
-                pid_t pid = fork();
-                if (pid < 0) {
-                    fprintf(stderr, "Fork failed.\n");
-                    exit(EXIT_FAILURE);
-                } else if (pid ==0) {
+                pid_t pid;
+                //pid_t pid = fork();
+//                if (pid < 0) {
+//                    fprintf(stderr, "Fork failed.\n");
+//                    exit(EXIT_FAILURE);
+//                } else if (pid ==0) { // forked
 #endif
                     
                     if (nbytes < 0)
@@ -346,21 +354,37 @@ int pmain(void) {
                         // Read error.
                         perror ("read");
                         //exit (EXIT_FAILURE);
+                        continue;
                     }
                     else if (nbytes == 0) {
 
                         close (i); 
                         FD_CLR (i, &active_fd_set);
+                        //exit(EXIT_SUCCESS);
+                        continue;
 
                     } else { 
-                       read_from_client (i, read_buffer, nbytes);
+                       pid = fork();
+
+                       if ( pid < 0 ) {
+                        fprintf(stderr, "fork failed\n");
+                        exit(EXIT_FAILURE);
+                       } else if (pid == 0) {
+                           read_from_client (i, read_buffer, nbytes);
+                           exit(EXIT_SUCCESS);
+                           break;
+                       } else {
+                           //exit(EXIT_SUCCESS);
+                           //break;
+                       }
+
                     }
 #ifdef FORKING
-                    exit(EXIT_SUCCESS);
+                    //exit(EXIT_SUCCESS);
                 
-                } else {
-                    newentry->pid = pid;
-                }
+//                } else {
+//                    newentry->pid = pid;
+//                }
 #endif
                 // if == 0 handle the ""
                 //
@@ -368,6 +392,8 @@ int pmain(void) {
                 //
                 //int status;
 #ifdef FORKING
+                //wait(&status);
+/*
                 pid_t endpid = waitpid(newentry->pid, &status, 0);
                 if(endpid == -1){
                     perror("waitpid failed");
@@ -378,12 +404,14 @@ int pmain(void) {
                 } else {
                     printf("Parent process: Child (PID %d) terminated abnormally.\n", endpid);
                 }
+                */
 #endif
 
               }
           }
       }
 
+      wait(&status);
       
       // join
       //clear_queue(&head);
@@ -408,13 +436,13 @@ int main(void){
         perror("Error deleting file");
     }
 
-//    pid_t p = fork();
+    pid_t p = fork();
 
-//    if ( p == 0 ) {
+    if ( p == 0 ) {
         pmain();
-//    }
-//    else {
+    }
+    else {
 
-//    }
+    }
 
 }
