@@ -8,15 +8,27 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <sys/queue.h>
 
-#define BUFFER_SIZE 999999
+// required to read till end of buffer - if not wait for something that reads entire buffer?
+#define BUFFER_SIZE 300000
 
 #define SOCKET_PORT 9000
+
+#define FORKING
 
 // http://gnu.cs.utah.edu/Manuals/glibc-2.2.3/html_chapter/libc_16.html
 
 // NOTE: using AF_INET is not bidirectional
 struct sockaddr_in sockaddrs[FD_SETSIZE];
+
+struct entry {
+    pid_t pid;
+    int fd;
+    TAILQ_ENTRY(entry) entries;
+};
+
+TAILQ_HEAD(tailq_head, entry);
 
 void sig_handler(int signo)
 {
@@ -51,38 +63,54 @@ void log_and_print(int priority, char* fmt, ...) {
 
 
 int
-read_from_client (int filedes)
+read_from_client (const int filedes, char* buffer, int nbytes)
 {
-  char fbuffer[BUFFER_SIZE];
-  char buffer[BUFFER_SIZE];
+  
+  char fbuffer[BUFFER_SIZE+1];
+  //char buffer[BUFFER_SIZE+1];
   //char writebuffer[512];
-  int nbytes;
+  //int nbytes;
   int sbytes;
 
   FILE *file_pointer;
 
-  bzero(fbuffer, BUFFER_SIZE);
-  bzero(buffer, BUFFER_SIZE);
+  bzero(fbuffer, BUFFER_SIZE+1);
+  //bzero(buffer, BUFFER_SIZE+1);
 
-  nbytes = read (filedes, buffer, BUFFER_SIZE);
 
+  printf("nbytes: %d\n", nbytes);
+  //printf(">>>%s\n", buffer[0]);
+  //nbytes = read (filedes, buffer, BUFFER_SIZE);
+
+  /*
   if (nbytes < 0)
     {
-      /* Read error. */
+      // Read error.
       perror ("read");
       exit (EXIT_FAILURE);
     }
-  else if (nbytes == 0)
-    /* End-of-file. */
+  else if (nbytes == 0) {
+
+      printf("ending read\n");
+
+    // End-of-file.
+    free(buffer);
     return -1;
-  else if (nbytes == 1) {
+  }
+  */
+  if (nbytes == 1) {
+      // received a ""
+      free(buffer);
       return 0;
   }
   else
     {
       
+      // move fopen out of function
 
       file_pointer = fopen("/var/tmp/aesdsocketdata", "a");
+      
+      // seek to position in file corresponding with fd
 
       if ( file_pointer == NULL ){
           log_and_print(LOG_ERR, "Error writing to file.\n", NULL);
@@ -126,11 +154,13 @@ read_from_client (int filedes)
       
 
       if (sbytes < 0){
-      
           perror("write");
           exit(EXIT_FAILURE);
       }
 
+      char message[] = "z";
+      //write(filedes, buffer, nbytes);
+      free(buffer);
       return 0;
     }
 }
@@ -150,6 +180,17 @@ make_socket (uint16_t port)
       perror ("socket");
       exit (EXIT_FAILURE);
     }
+
+  int rcvBufferSize = 0;
+  socklen_t optlen = sizeof(rcvBufferSize);
+
+  if (getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &rcvBufferSize, &optlen) == -1) {
+    perror("getsockopt failed");
+    close(sock);
+    return -1;
+  }
+
+  printf("Current receive buffer size: %d\n", rcvBufferSize);
 
   name.sin_family = AF_INET;
   name.sin_port = htons (port);
@@ -175,6 +216,19 @@ void *safe_malloc(size_t n)
     return p;
 }
 
+// Attribute
+//  google AI: search term "queue.h remove all items in queue"
+/*
+void clear_queue(struct tailhead *head) {
+    struct entry *np, *next_np;
+
+    // Iterate safely through the queue and remove each element
+    TAILQ_FOREACH_SAFE(np, head, entries, next_np) {
+        TAILQ_REMOVE(head, np, entries);
+        free(np); // Free the memory allocated for the element
+    }
+}
+*/
 
 int pmain(void) {
 
@@ -224,6 +278,8 @@ int pmain(void) {
 
   int n_reads = 0;
 
+  struct entry *threads[65535];
+
   while (1)
     {
       /* Block until input arrives on one or more active sockets. */
@@ -237,9 +293,11 @@ int pmain(void) {
 
       /* Service all the sockets with input pending. */
       for (int i = 0; i < FD_SETSIZE; ++i)
+      {
+
         if (FD_ISSET (i, &read_fd_set))
           {
-            if (i == s_fd)
+              if (i == s_fd)
               {
                 /* Connection request on original socket. */
                 int new;
@@ -256,16 +314,90 @@ int pmain(void) {
               }
               else
               {
+
+                struct entry *newentry = threads[i];
+                
+                if (newentry == NULL) {
+                    newentry = malloc(sizeof(struct entry));
+                    newentry->fd = i;
+                    //TAILQ_INSERT_TAIL(&head, newentry, entries);
+                    printf("inserting %d\n", i);
+                }
+
+                // fork  
                 n_reads = n_reads + 1;  
                 printf("%d\n", n_reads);
+                int status;
                 /* Data arriving on an already-connected socket. */
-                if (read_from_client (i) < 0)
-                  {
-                    close (i);
-                    FD_CLR (i, &active_fd_set);
-                  }
+
+                char* read_buffer = malloc(sizeof(char)*BUFFER_SIZE+1);
+                bzero(read_buffer, BUFFER_SIZE+1);
+                int nbytes = read (i, read_buffer, BUFFER_SIZE);
+#ifdef FORKING
+                pid_t pid = fork();
+                if (pid < 0) {
+                    fprintf(stderr, "Fork failed.\n");
+                    exit(EXIT_FAILURE);
+                } else if (pid ==0) {
+#endif
+                    
+                    if (nbytes < 0)
+                    {
+                        // Read error.
+                        perror ("read");
+                        //exit (EXIT_FAILURE);
+                    }
+                    else if (nbytes == 0) {
+
+                        close (i); 
+                        FD_CLR (i, &active_fd_set);
+
+                    } else { 
+                       read_from_client (i, read_buffer, nbytes);
+                    }
+#ifdef FORKING
+                    exit(EXIT_SUCCESS);
+                
+                } else {
+                    newentry->pid = pid;
+                }
+#endif
+                // if == 0 handle the ""
+                //
+                // before joining there join here
+                //
+                //int status;
+#ifdef FORKING
+                pid_t endpid = waitpid(newentry->pid, &status, 0);
+                if(endpid == -1){
+                    perror("waitpid failed");
+                    exit(EXIT_FAILURE);
+                }
+                if (WIFEXITED(status)) {
+                    printf("Parent process: Child (PID %d) terminated with status %d.\n", endpid, WEXITSTATUS(status));
+                } else {
+                    printf("Parent process: Child (PID %d) terminated abnormally.\n", endpid);
+                }
+#endif
+
               }
           }
+      }
+
+      
+      // join
+      //clear_queue(&head);
+      //
+      //
+      //
+      //struct entry *np, *next_np;
+
+      // Iterate safely through the queue and remove each element
+//      TAILQ_FOREACH_SAFE(np, &head, entries, next_np) {
+//          TAILQ_REMOVE(head, np, entries);
+//          free(np); // Free the memory allocated for the element
+//      }
+
     }
 }
 
@@ -276,13 +408,13 @@ int main(void){
         perror("Error deleting file");
     }
 
-    pid_t p = fork();
+//    pid_t p = fork();
 
-    if ( p == 0 ) {
+//    if ( p == 0 ) {
         pmain();
-    }
-    else {
+//    }
+//    else {
 
-    }
+//    }
 
 }
