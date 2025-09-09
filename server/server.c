@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/queue.h>
+#include <time.h>
 
 // required to read till end of buffer - if not wait for something that reads entire buffer?
 #define BUFFER_SIZE 300000
@@ -16,6 +17,10 @@
 #define SOCKET_PORT 9000
 
 #define FORKING
+
+#define FILENAME "/var/tmp/aesdsocketdata"
+
+#define INTERVAL_SECONDS 10
 
 // http://gnu.cs.utah.edu/Manuals/glibc-2.2.3/html_chapter/libc_16.html
 
@@ -115,7 +120,7 @@ read_from_client (const int filedes, char* buffer, int nbytes)
       
       // move fopen out of function
 
-      file_pointer = fopen("/var/tmp/aesdsocketdata", "a");
+      file_pointer = fopen(FILENAME, "a");
       
       // seek to position in file corresponding with fd
 
@@ -223,6 +228,54 @@ void *safe_malloc(size_t n)
     return p;
 }
 
+
+
+
+int append_time(void) {
+
+    FILE *fp;
+    time_t raw_time;
+    struct tm *gmt_time;
+    char timestamp_buf[256];
+
+        time(&raw_time);
+
+        // 2. Convert raw time to GMT broken-down time.
+        // RFC 2822 uses GMT (UTC).
+        gmt_time = gmtime(&raw_time);
+        if (gmt_time == NULL) {
+            perror("gmtime");
+            return 1;
+        }
+
+        // 3. Format the GMT time as an RFC 2822 compliant string.
+        // Example format: "Mon, 08 Sep 2025 04:30:00 +0000"
+        strftime(timestamp_buf, 256, "%a, %d %b %Y %H:%M:%S +0000", gmt_time);
+
+        // 4. Open the file in append mode.
+        // Creates the file if it doesn't exist.
+        fp = fopen(FILENAME, "a");
+        if (fp == NULL) {
+            perror("fopen");
+            return 1;
+        }
+
+        // 5. Append the formatted timestamp to the file.
+        fprintf(fp, "timestamp:%s\n", timestamp_buf);
+
+        // 6. Close the file to ensure the data is written.
+        fclose(fp);
+
+        // 7. Print to console for confirmation.
+        //printf("Appended timestamp: %s\n", timestamp_buf);
+
+        // 8. Wait for 10 seconds before the next iteration.
+        //sleep(INTERVAL_SECONDS);
+
+}
+
+
+
 // Attribute
 //  google AI: search term "queue.h remove all items in queue"
 /*
@@ -239,7 +292,9 @@ void clear_queue(struct tailhead *head) {
 
 int pmain(void) {
 
-    
+    time_t last_execution_time = time(NULL); // Initialize with current time
+
+    const double interval_seconds = 10.0; // Desired interval in seconds
 
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
         log_and_print(LOG_ERR, "Unable to create signal handler.\n", NULL);
@@ -289,6 +344,15 @@ int pmain(void) {
   int status = 0;
   while (1)
     {
+
+        time_t current_time = time(NULL);
+        double elapsed_time = difftime(current_time, last_execution_time);
+
+        if (elapsed_time >= interval_seconds) {
+            append_time();
+            last_execution_time = current_time; // Update last execution time
+        }
+
       /* Block until input arrives on one or more active sockets. */
       read_fd_set = active_fd_set;
       if (select (FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0)
@@ -374,6 +438,8 @@ int pmain(void) {
                            exit(EXIT_SUCCESS);
                            break;
                        } else {
+                           // if you are not killing the parent you should be using PTHREAD
+                           // however i dont think the tests like that
                            //exit(EXIT_SUCCESS);
                            //break;
                        }

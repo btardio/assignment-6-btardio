@@ -62,6 +62,16 @@ RUN chmod +x /entrypoint.sh
 RUN apt-get install -y sshpass
 RUN apt-get install -y ncat
 
+
+ADD docker_install.sh /docker_install.sh
+ADD runner_install.sh /runner_install.sh
+RUN sh /docker_install.sh
+RUN sh /runner_install.sh
+ENV RUNNER_ALLOW_RUNASROOT=1
+RUN /actions-runner/config.sh remove --url https://github.com/cu-ecen-aeld/assignment-1-btardio --token AFAF6AORHSIAUUEWISU3VGDHRMP2C
+
+
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 
