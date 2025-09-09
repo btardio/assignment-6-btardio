@@ -447,12 +447,12 @@ int pmain(void) {
                         exit(EXIT_FAILURE);
                        } else if (pid == 0) {
                            read_from_client (i, read_buffer, nbytes);
-                           exit(EXIT_SUCCESS);
+                           //exit(EXIT_SUCCESS);
                            break;
                        } else {
                            // if you are not killing the parent you should be using PTHREAD
                            // however i dont think the tests like that
-                           //exit(EXIT_SUCCESS);
+                           exit(EXIT_SUCCESS);
                            //break;
                        }
 
