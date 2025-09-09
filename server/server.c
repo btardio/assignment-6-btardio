@@ -292,6 +292,7 @@ void clear_queue(struct tailhead *head) {
 
 int pmain(void) {
 
+    int skipfirsttimestamp = 0;
     //time_t last_execution_time = time(NULL); // Initialize with current time
 
     //const double interval_seconds = 10.0; // Desired interval in seconds
@@ -347,7 +348,7 @@ int pmain(void) {
 
 
     time_t last_execution_time = time(NULL); // Initialize with current time
-
+    last_execution_time -= 10;
     const double interval_seconds = 10.0; // Desired interval in seconds
 
 
