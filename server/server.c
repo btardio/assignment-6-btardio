@@ -90,7 +90,7 @@ read_from_client (const int filedes, char* buffer, int nbytes)
   //bzero(buffer, BUFFER_SIZE+1);
 
 
-  printf("nbytes: %d\n", nbytes);
+  //printf("nbytes: %d\n", nbytes);
   //printf(">>>%s\n", buffer[0]);
   //nbytes = read (filedes, buffer, BUFFER_SIZE);
 
@@ -403,12 +403,12 @@ int pmain(void) {
                     newentry = malloc(sizeof(struct entry));
                     newentry->fd = i;
                     //TAILQ_INSERT_TAIL(&head, newentry, entries);
-                    printf("inserting %d\n", i);
+                    //printf("inserting %d\n", i);
                 }
 
                 // fork  
                 n_reads = n_reads + 1;  
-                printf("%d\n", n_reads);
+                //printf("%d\n", n_reads);
                 //int status;
                 /* Data arriving on an already-connected socket. */
 
