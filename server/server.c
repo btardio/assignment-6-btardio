@@ -292,9 +292,9 @@ void clear_queue(struct tailhead *head) {
 
 int pmain(void) {
 
-    time_t last_execution_time = time(NULL); // Initialize with current time
+    //time_t last_execution_time = time(NULL); // Initialize with current time
 
-    const double interval_seconds = 10.0; // Desired interval in seconds
+    //const double interval_seconds = 10.0; // Desired interval in seconds
 
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
         log_and_print(LOG_ERR, "Unable to create signal handler.\n", NULL);
@@ -342,6 +342,17 @@ int pmain(void) {
 
   struct entry *threads[65535];
   int status = 0;
+
+
+
+
+    time_t last_execution_time = time(NULL); // Initialize with current time
+
+    const double interval_seconds = 10.0; // Desired interval in seconds
+
+
+
+
   while (1)
     {
 
