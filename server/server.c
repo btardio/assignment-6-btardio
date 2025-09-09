@@ -348,8 +348,8 @@ int pmain(void) {
 
 
     time_t last_execution_time = time(NULL); // Initialize with current time
-    last_execution_time += 10;
-    const double interval_seconds = 10.0; // Desired interval in seconds
+    //last_execution_time += 10;
+    const double interval_seconds = 8.0; // Desired interval in seconds
 
 
 
