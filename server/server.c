@@ -10,7 +10,11 @@
 #include <signal.h>
 #include <sys/queue.h>
 #include <time.h>
-
+#include <fcntl.h>
+//#include <sys/mman.h>
+#include <sys/shm.h>
+#define SHM_SIZE 331072
+//1024 
 // required to read till end of buffer - if not wait for something that reads entire buffer?
 #define BUFFER_SIZE 300000
 
@@ -19,14 +23,20 @@
 #define FORKING
 
 #define FILENAME "/var/tmp/aesdsocketdata"
-
+#define FILENAMENEW "/var/tmp/aesdsocketdatanew"
 #define INTERVAL_SECONDS 10
 
 // http://gnu.cs.utah.edu/Manuals/glibc-2.2.3/html_chapter/libc_16.html
 
 // NOTE: using AF_INET is not bidirectional
-struct sockaddr_in sockaddrs[FD_SETSIZE];
 
+
+    int shmid;
+    char *shm_addr;
+    pid_t pid;
+
+struct sockaddr_in sockaddrs[FD_SETSIZE];
+char *file_pointer_new;
 struct entry {
     pid_t pid;
     int fd;
@@ -50,7 +60,7 @@ void sig_handler(int signo)
 
 
 
-void log_and_print(int priority, char* fmt, ...) {
+void log_and_print_a(int priority, char* fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
@@ -65,7 +75,15 @@ void log_and_print(int priority, char* fmt, ...) {
     va_end(args);
 }
 
+void log_and_print(char* fmt) {
+    log_and_print_a(LOG_ERR, fmt);
+}
 
+int bufferposition[FD_SETSIZE];
+
+char outbuffer[131072*6];
+
+int lastBufferPosition = 0;
 
 /*
  * Note: this is concurrent but simply blocking on file open
@@ -125,15 +143,90 @@ read_from_client (const int filedes, char* buffer, int nbytes)
       // seek to position in file corresponding with fd
 
       if ( file_pointer == NULL ){
-          log_and_print(LOG_ERR, "Error writing to file.\n", NULL);
+          log_and_print("Error writing to file.\n");
           return -1;
       }
 
+      // locking mechanism needed here
+      if (bufferposition[filedes] == -1){
+          bufferposition[filedes] = lastBufferPosition;
+          lastBufferPosition = lastBufferPosition + 131072;
+      }
+
+      printf("filedes: %d\n", filedes);
+      printf("bufferposition[filedes]: %d\n", bufferposition[filedes]);
+      printf("nbytes: %d\n", nbytes);
+      fwrite(buffer, sizeof(char), nbytes, stdout);
+//      fwrite(outbuffer, sizeof(char), nbytes, stdout);
+
+      char* outbuffptr = &outbuffer[bufferposition[filedes]];
+ 
+      //char* outbuffptrf = &file_pointer_new[bufferposition[filedes]];
+
+      //FILE* nonblockingfd;
+
+      // locking mechanism needed here
+      //if (fseek(file_pointer_new, 
+      //nonblockingfd = open(FILENAMENEW, O_RDWR | O_NONBLOCK, 0644);
+
+//      if (fseek(nonblockingfd, bufferposition[filedes], SEEK_SET) != 0) {
+//          perror("Error seeking in file");
+//          fclose(nonblockingfd);
+//          printf("fseek failed.\n");
+//          return EXIT_FAILURE;
+//      }
+
+      if ((shm_addr = shmat(shmid, NULL, 0)) == (char *) -1) {
+            perror("shmat child");
+            exit(1);
+      }
+
+      strncpy(outbuffptr, buffer, nbytes);
+
+      char* shmbuffptr = &shm_addr[bufferposition[filedes]];
+
+      strncpy(shmbuffptr, buffer, nbytes);
+
+      if (shmdt(shm_addr) == -1) {
+            perror("shmdt child");
+            exit(1);
+      }
+      //strncpy(outbuffptrf, buffer, nbytes);      
+
+      //fwrite(buffer, sizeof(char), nbytes, nonblockingfd);
+      /*
+      for ( int i = 0; i < nbytes; i++ ) {
+          if(putc(buffer[i], nonblockingfd) == EOF) {
+              perror("Error writing to file");
+              fclose(nonblockingfd);
+              return EXIT_FAILURE;
+          }
+      }
+*/
+
+      //close(nonblockingfd);
+
+
+      
+      //printf("outbuffer: \n");
+
+      //fwrite(outbuffer, sizeof(char), nbytes, stdout);
+
+      //printf("outbuff[bufferposition[filedes]]: \n ptr: %d\n",&outbuffer[bufferposition[filedes]]);
+      //printf("outbuff: \n ptr: %d\n",outbuffer);
+     //fwrite(outbuffer[bufferposition[filedes]], sizeof(char), nbytes, stdout);
+
+// this needs lock then
+      bufferposition[filedes] = bufferposition[filedes] + (nbytes * sizeof(char));
+      //buffer, file_pointer
       if (fputs(buffer, file_pointer) == EOF) {
           perror("Error writing to file");
           fclose(file_pointer);
           return -1;
       }
+
+
+
 
       if (fclose(file_pointer) == EOF) {
           perror("Error closing the file");
@@ -170,8 +263,9 @@ read_from_client (const int filedes, char* buffer, int nbytes)
           exit(EXIT_FAILURE);
       }
 
-      char message[] = "z";
-      //write(filedes, buffer, nbytes);
+      //char message[] = "z";
+      
+      //write(filedes, message, nbytes);
       free(buffer);
       return 0;
     }
@@ -222,12 +316,11 @@ void *safe_malloc(size_t n)
 {
     void *p = malloc(n);
     if (p == NULL) {
-        log_and_print(LOG_ERR, "Fatal: failed to allocate %zu bytes.\n", n);
+        log_and_print("Fatal: failed to allocate bytes.\n");
         abort();
     }
     return p;
 }
-
 
 
 
@@ -289,21 +382,104 @@ void clear_queue(struct tailhead *head) {
     }
 }
 */
+/*
+FILE *fpa;
+
+char* initMMfile() {
+    printf("123\n");
+    fpa = fopen(FILENAMENEW, "w"); //O_RDWR);
+    const char *filename = FILENAMENEW;
+    const long file_size = 13107; // 100,000 bytes
+    printf("123\n");
+    if (fpa == NULL) {
+        log_and_print("Error opening file");
+        return EXIT_FAILURE;
+    }
+
+    // Seek to the position just before the end of the desired file size
+    if (fseek(fpa, file_size - 1, SEEK_SET) != 0) {
+        log_and_print("Error seeking in file");
+        fclose(fpa);
+        return EXIT_FAILURE;
+    }
+    printf("123\n");
+    // Write a single byte to "finalize" the file size
+    if (fputc('\0', fpa) == EOF) { // Write a null byte
+        log_and_print("Error writing to file");
+        fclose(fpa);
+        return EXIT_FAILURE;
+    }
+
+    
+    printf("File '%s' of size %ld bytes created successfully.\n", filename, file_size);
+    close(fpa);
+    
+    fpa = open(FILENAMENEW,  O_RDWR | O_TRUNC, (mode_t)0644);
+    //fpa = open(FILENAMENEW, O_RDWR);
+
+    off_t file_sizea = lseek(fpa, 0, SEEK_END);
+    if (file_sizea == -1) {
+        log_and_print("error opening file");
+        return EXIT_FAILURE;
+    }
+
+    if (ftruncate(fpa, file_size) == -1) {
+        log_and_print("Error setting file size");
+        close(fpa);
+        return 1;
+    }
+
+    char *file_data = mmap(NULL, file_sizea, PROT_READ | PROT_WRITE, MAP_SHARED, fpa, 0);
+
+    if (file_data == MAP_FAILED) {
+        log_and_print("memory map failed");
+        return EXIT_FAILURE;
+    }
+
+
+
+    return file_data;
+}
+*/
+
 
 int pmain(void) {
 
-    int skipfirsttimestamp = 0;
-    //time_t last_execution_time = time(NULL); // Initialize with current time
 
-    //const double interval_seconds = 10.0; // Desired interval in seconds
+    // Create a shared memory segment
+    // IPC_PRIVATE ensures a unique key, IPC_CREAT creates if it doesn't exist
+    // 0666 sets read/write permissions for owner, group, and others
+    if ((shmid = shmget(IPC_PRIVATE, SHM_SIZE, IPC_CREAT | 0666)) < 0) {
+        perror("shmget");
+        exit(1);
+    }
+
+     //file_pointer_new = initMMfile();
+
+     //if ( file_pointer_new == NULL ){
+     //    log_and_print(LOG_ERR, "Error writing to file.\n", NULL);
+//         return -1;
+ //    }
+
+
+    //memset(file_pointer_new, 'B', 131);
+    //munmap(file_pointer_new, 131072*6);   
+
+    memset(bufferposition, -1, FD_SETSIZE);
+
+    memset(outbuffer, 'A', 131072*6); //bzero(outbuffer, 131072*6);
+
+
+
+    //fwrite(outbuffer, sizeof(char), 60, stdout);
 
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
-        log_and_print(LOG_ERR, "Unable to create signal handler.\n", NULL);
+        log_and_print("Unable to create signal handler.\n");
     }
 
 
     if (signal(SIGTERM, sig_handler) == SIG_ERR) {
-        log_and_print(LOG_ERR, "Unable to create signal handler.\n", NULL);
+        log_and_print("Unable to create signal handler.\n");
     }
 
 
@@ -318,7 +494,7 @@ int pmain(void) {
     int s_fd = make_socket(SOCKET_PORT);
 
     if (s_fd < 0) {
-        log_and_print(LOG_ERR, "Unable to create socket.\n", NULL);
+        log_and_print("Unable to create socket.\n");
         return -1;
     }
 
@@ -327,7 +503,7 @@ int pmain(void) {
 
 
     if ( l_rval < 0 ) {
-        log_and_print(LOG_ERR, "Unable to listen on port.\n", NULL);
+        log_and_print("Unable to listen on port.\n");
     }
 
     struct sockaddr_in addr_connector;
@@ -348,7 +524,7 @@ int pmain(void) {
 
 
     time_t last_execution_time = time(NULL); // Initialize with current time
-    //last_execution_time += 10;
+    last_execution_time += 10;
     const double interval_seconds = 3.0; // Desired interval in seconds
 
 
@@ -388,7 +564,7 @@ int pmain(void) {
 
                 new = accept(s_fd, (struct sockaddr*) &addr_connector, (unsigned int *) &s_size); //(struct sockaddr *) &addr_connector, NULL);
                 if ( new < 0 ) {
-                    log_and_print(LOG_ERR, "Unable to accept.\n", NULL);
+                    log_and_print("Unable to accept.\n");
                     
                 } else {
                     sockaddrs[new] = addr_connector;
@@ -403,27 +579,15 @@ int pmain(void) {
                 if (newentry == NULL) {
                     newentry = malloc(sizeof(struct entry));
                     newentry->fd = i;
-                    //TAILQ_INSERT_TAIL(&head, newentry, entries);
-                    //printf("inserting %d\n", i);
                 }
 
-                // fork  
                 n_reads = n_reads + 1;  
-                //printf("%d\n", n_reads);
-                //int status;
                 /* Data arriving on an already-connected socket. */
-
                 char* read_buffer = malloc(sizeof(char)*BUFFER_SIZE+1);
                 bzero(read_buffer, BUFFER_SIZE+1);
+                printf("i: %d\n", i);
                 int nbytes = read (i, read_buffer, BUFFER_SIZE);
-#ifdef FORKING
                 pid_t pid;
-                //pid_t pid = fork();
-//                if (pid < 0) {
-//                    fprintf(stderr, "Fork failed.\n");
-//                    exit(EXIT_FAILURE);
-//                } else if (pid ==0) { // forked
-#endif
                     
                     if (nbytes < 0)
                     {
@@ -442,55 +606,93 @@ int pmain(void) {
                     } else { 
                        pid = fork();
 
-                       if ( pid < 0 ) {
-                        fprintf(stderr, "fork failed\n");
-                        exit(EXIT_FAILURE);
+                       if ( pid < 0 ) { 
+                           fprintf(stderr, "fork failed\n"); exit(EXIT_FAILURE);
                        } else if (pid == 0) {
-                           read_from_client (i, read_buffer, nbytes);
-                           //exit(EXIT_SUCCESS);
-                           break;
-                       } else {
-                           // if you are not killing the parent you should be using PTHREAD
-                           // however i dont think the tests like that
+                           printf("iii: %d\n", i);
+                           pid_t pidd;
+                           pidd = fork();
+                           if ( pidd < 0 ) { fprintf(stderr, "fork failed\n"); exit(EXIT_FAILURE); }
+                           else if (pidd == 0) {
+                               printf("iiiiii: %d\n", i);
+                               read_from_client (i, read_buffer, nbytes);
+                               exit(EXIT_SUCCESS);
+                           } else {
+                           }
                            exit(EXIT_SUCCESS);
                            //break;
+                           
+                       } else {
+                           //exit(EXIT_SUCCESS);
                        }
 
                     }
-#ifdef FORKING
-                    //exit(EXIT_SUCCESS);
-                
-//                } else {
-//                    newentry->pid = pid;
-//                }
-#endif
-                // if == 0 handle the ""
-                //
-                // before joining there join here
-                //
-                //int status;
-#ifdef FORKING
-                //wait(&status);
-/*
-                pid_t endpid = waitpid(newentry->pid, &status, 0);
-                if(endpid == -1){
-                    perror("waitpid failed");
-                    exit(EXIT_FAILURE);
-                }
-                if (WIFEXITED(status)) {
-                    printf("Parent process: Child (PID %d) terminated with status %d.\n", endpid, WEXITSTATUS(status));
-                } else {
-                    printf("Parent process: Child (PID %d) terminated abnormally.\n", endpid);
-                }
-                */
-#endif
-
               }
           }
       }
 
+
+
+
+      //read_from_client(i, read_buffer, nbytes);
+
       wait(&status);
+
+         if ((shm_addr = shmat(shmid, NULL, 0)) == (char *) -1) {
+             perror("shmat child");
+             exit(1);
+         }
+
+         printf("mbm: ");
+        fwrite(shm_addr, sizeof(char), 100060, stdout);
+              if (shmdt(shm_addr) == -1) {
+            perror("shmdt child");
+            exit(1);
+        }
+      //printf("!!!outbuff: \n ptr: %d\n",outbuffer);
+
+      //printf("outbuffer: %s\n", outbuffer);
+      //fwrite(outbuffer, sizeof(char), 60, stdout);
+
+      //fwrite(file_pointer_new, sizeof(char), 60, stdout);
+
+/*
+      FILE *file_pointer;
+
+
+      file_pointer = fopen(FILENAME, "a");
+
+       if ( file_pointer == NULL ){
+           log_and_print(LOG_ERR, "Error writing to file.\n", NULL);
+           return -1;
+       }
+
+
+      if (fputs(outbuffer, file_pointer) == EOF) {
+           perror("Error writing to file");
+           fclose(file_pointer);
+           return -1;
+      }
+
+
+       //buffer, file_pointer
+ 
+
+       if (fclose(file_pointer) == EOF) {
+           perror("Error closing the file");
+           return -11;
+       }
+
+*/
+
+      //memset(bufferposition, -1, FD_SETSIZE);
+ 
+      //bzero(outbuffer, 131072*6);
+
       
+
+
+
       // join
       //clear_queue(&head);
       //
@@ -505,6 +707,7 @@ int pmain(void) {
 //      }
 
     }
+  fclose(file_pointer_new);
 }
 
 int main(void){
@@ -514,13 +717,13 @@ int main(void){
         perror("Error deleting file");
     }
 
-    pid_t p = fork();
+//    pid_t p = fork();
 
-    if ( p == 0 ) {
+//    if ( p == 0 ) {
         pmain();
-    }
-    else {
+//    }
+//    else {
 
-    }
+//    }
 
 }
