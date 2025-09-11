@@ -61,7 +61,7 @@ RUN chmod +x /entrypoint.sh
 
 RUN apt-get install -y sshpass
 RUN apt-get install -y ncat
-
+RUN apt-get install -y valgrind
 
 ADD docker_install.sh /docker_install.sh
 ADD runner_install.sh /runner_install.sh
