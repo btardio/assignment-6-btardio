@@ -1,18 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <syslog.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <signal.h>
-#include <sys/queue.h>
-#include <time.h>
-#include <fcntl.h>
-#include <sys/shm.h>
-#include <semaphore.h>
+#include "serverf.h"
+
 #define SHM_SIZE 331072
 #define BUFFER_SIZE 300000
 
@@ -65,28 +52,25 @@
 // NOTE: using AF_INET is not bidirectional
 
 
-int shmid;
-char *shm_addr;
+extern int shmid;
+extern char *shm_addr;
 
-pid_t pid;
+extern pid_t pid;
 
-int shmid_bufferposition;
-int *bufferposition;
+extern int shmid_bufferposition;
+extern int *bufferposition;
 
-struct sockaddr_in sockaddrs[FD_SETSIZE];
+extern struct sockaddr_in sockaddrs[FD_SETSIZE];
 
-char *file_pointer_new;
+extern char *file_pointer_new;
 
-int shmid_lastBufferPosition;
+extern int shmid_lastBufferPosition;
 
-int* lastBufferPosition;
+extern int* lastBufferPosition;
 
-sem_t mutex;
+extern sem_t mutex;
 
-struct entry {
-    pid_t pid;
-    int fd;
-};
+struct entry;
 
 
 void sig_handler(int signo)
@@ -102,7 +86,7 @@ void sig_handler(int signo)
 }
 
 
-void log_and_print_a(int priority, char* fmt, ...) {
+void log_and_print_a(int priority, const char* fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
@@ -117,7 +101,7 @@ void log_and_print_a(int priority, char* fmt, ...) {
     va_end(args);
 }
 
-void log_and_print(char* fmt) {
+void log_and_print(const char* fmt) {
     log_and_print_a(LOG_ERR, fmt);
 }
 
@@ -468,9 +452,9 @@ int pmain(void) {
             exit (EXIT_FAILURE);
         }
 
-
+        int i;
         /* Service all the sockets with input pending. */
-        for (int i = 0; i < FD_SETSIZE; ++i)
+        for (i = 0; i < FD_SETSIZE; ++i)
         {
             if (FD_ISSET (i, &read_fd_set))
             {
@@ -568,21 +552,4 @@ int pmain(void) {
         }
 
     }
-}
-
-int main(void){
-
-    if (remove("/var/tmp/aesdsocketdata") == 0) {
-    } else {
-        perror("Error deleting file");
-    }
-
-    pid_t p = fork();
-
-    if ( p == 0 ) {
-        pmain();
-    } else {
-
-    }
-
 }
