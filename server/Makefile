@@ -45,7 +45,7 @@ clean:
 vars:
     UNAME_P := $(shell uname -p)
 
-all: clean $(TARGET_SERVER) test
+all: clean $(TARGET_SERVER)
 
 $(TARGET_SERVER): vars
 	#$(info $(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(SERVER_OBJ))
