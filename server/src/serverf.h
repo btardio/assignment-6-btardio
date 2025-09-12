@@ -29,9 +29,12 @@ void *safe_malloc(size_t n);
 
 void append_time(void);
 
+int shmid;
+
 //int pmain(void);
 
-int shmid;
+int dummy;
+
 char *shm_addr;
  
 pid_t pid;
