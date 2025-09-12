@@ -70,6 +70,12 @@ RUN sh /runner_install.sh
 ENV RUNNER_ALLOW_RUNASROOT=1
 RUN /actions-runner/config.sh remove --url https://github.com/cu-ecen-aeld/assignment-1-btardio --token AFAF6AORHSIAUUEWISU3VGDHRMP2C
 
+RUN apt-get install -y build-essential chrpath cpio debianutils diffstat file gawk gcc git iputils-ping libacl1 liblz4-tool locales 
+RUN apt-get install -y python3 python3-git 
+#RUN apt-get install -y python3-jinja2 
+RUN apt-get install -y python3-pexpect 
+RUN apt-get install -y python3-pip 
+RUN apt-get install -y python3-subunit socat texinfo unzip wget xz-utils zstd
 
 
 ENTRYPOINT ["/entrypoint.sh"]
