@@ -26,15 +26,20 @@ fi
 bitbake-layers show-layers | grep "meta-aesd" > /dev/null
 layer_info=$?
 
-if [ $layer_info -ne 0 ];then
-	echo "Adding meta-aesd layer"
-	bitbake-layers add-layer ../meta-aesd
-else
-	echo "meta-aesd layer already exists"
-fi
+bitbake-layers remove-layer workspace
+bitbake-layers add-layer workspace
+
+#if [ $layer_info -ne 0 ];then
+#	echo "Adding meta-aesd layer"
+#	bitbake-layers add-layer ../meta-aesd
+#else
+#	echo "meta-aesd layer already exists"
+#fi
 
 set -e
 # bitbake core-image-aesd
+
+bitbake -c cleansstate aesd-assignments
 
 bitbake core-image-aesd -c cleansstate
 

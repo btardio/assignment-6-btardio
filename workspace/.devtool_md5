@@ -1,0 +1,5 @@
+aesdassignmentsix|recipes/aesdassignmentsix/aesdassignmentsix.bb|5c8f161790a3dc16a06ebfb9f361a4d2
+aesdassignmentsix|appends/aesdassignmentsix.bbappend|ccc212e5cbfe416684b99bace6df0b9a
+aesd-assignments|recipes/aesd-assignments/aesd-assignments.bb|5c8f161790a3dc16a06ebfb9f361a4d2
+aesd-assignments|appends/aesd-assignments.bbappend|ccc212e5cbfe416684b99bace6df0b9a
+aesd-assignments|recipes/aesd-assignments/aesd-assignments.bb|b1ec2af08838590272c766b6efaa9410
