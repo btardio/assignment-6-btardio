@@ -33,7 +33,7 @@ int shmid;
 
 //int pmain(void);
 
-int dummy;
+//int dummy;
 
 char *shm_addr;
  
