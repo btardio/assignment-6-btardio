@@ -426,7 +426,6 @@ int pmain(void) {
 
     int n_reads = 0;
 
-    struct entry *threads[65535];
     int status = 0;
 
     time_t last_execution_time = time(NULL); // Initialize with current time
@@ -435,7 +434,7 @@ int pmain(void) {
 
     while (1)
     {
-
+/*
         time_t current_time = time(NULL);
         double elapsed_time = difftime(current_time, last_execution_time);
 
@@ -443,7 +442,7 @@ int pmain(void) {
             append_time();
             last_execution_time = current_time; // Update last execution time
         }
-
+*/
         /* Block until input arrives on one or more active sockets. */
         read_fd_set = active_fd_set;
         if (select (FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0)
@@ -476,13 +475,6 @@ int pmain(void) {
                 else
                 {
 
-                    struct entry *newentry = threads[i];
-
-                    if (newentry == NULL) {
-                        newentry = malloc(sizeof(struct entry));
-                        newentry->fd = i;
-                    }
-
                     n_reads = n_reads + 1;  
                     /* Data arriving on an already-connected socket. */
                     char* read_buffer = malloc(sizeof(char)*BUFFER_SIZE+1);
@@ -498,7 +490,7 @@ int pmain(void) {
                         continue;
                     }
                     else if (nbytes == 0) {
-
+			free(read_buffer);
                         close (i); 
                         FD_CLR (i, &active_fd_set);
                         //exit(EXIT_SUCCESS);
@@ -508,20 +500,22 @@ int pmain(void) {
                         pid = fork();
 
                         if ( pid < 0 ) { 
-                            fprintf(stderr, "fork failed\n"); exit(EXIT_FAILURE);
+                            fprintf(stderr, "fork failed\n"); free(read_buffer); exit(EXIT_FAILURE);
                         } else if (pid == 0) {
                             pid_t pidd;
                             pidd = fork();
-                            if ( pidd < 0 ) { fprintf(stderr, "fork failed\n"); exit(EXIT_FAILURE); }
+                            if ( pidd < 0 ) { fprintf(stderr, "fork failed\n"); free(read_buffer); exit(EXIT_FAILURE); }
                             else if (pidd == 0) {
                                 read_from_client (i, read_buffer, nbytes);
                                 exit(EXIT_SUCCESS);
                             } else {
+				free(read_buffer);
                             }
                             exit(EXIT_SUCCESS);
                             //break;
 
                         } else {
+			    free(read_buffer);
                             //exit(EXIT_SUCCESS);
                         }
 
@@ -550,6 +544,7 @@ int pmain(void) {
             perror("shmdt child");
             exit(1);
         }
+	
 
     }
 }

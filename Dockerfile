@@ -77,6 +77,12 @@ RUN apt-get install -y python3-pexpect
 RUN apt-get install -y python3-pip 
 RUN apt-get install -y python3-subunit socat texinfo unzip wget xz-utils zstd
 
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+RUN locale-gen
+RUN adduser --disabled-password --gecos "" bitbake
+RUN usermod -aG root bitbake
+
+
 
 ENTRYPOINT ["/entrypoint.sh"]
 
