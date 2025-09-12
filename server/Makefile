@@ -31,6 +31,8 @@ TARGET_TEST = aesdsocket_test
 #SERVER_OBJ = -o aesdsocket src/server.c src/serverf.c
 #TEST_OBJ = -o aesdsocket_test server_test.c
 
+#PROGRAM=server
+BINDIR=/usr/local/bin
 SRC_FILES=src/serverf.c src/server.c
 TEST_SRC_FILES=$(UNITY_ROOT)/src/unity.c src/serverf.c test/server_test.c test/test_runners/server_test_runner.c
 INC_DIRS=-Isrc -I$(UNITY_ROOT)/src
@@ -43,9 +45,9 @@ clean:
 vars:
     UNAME_P := $(shell uname -p)
 
-all: clean server test
+all: clean $(TARGET_SERVER) test
 
-server: vars
+$(TARGET_SERVER): vars
 	#$(info $(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(SERVER_OBJ))
 	#@($(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(SERVER_OBJ))
 	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $(TARGET_SERVER)
@@ -59,7 +61,10 @@ server_test_runner: test/server_test.c
 	#$(info $(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(TEST_OBJ))
 	#@($(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(TEST_OBJ))
 
-
+install:
+	@echo "Installing $(TARGET_SERVER) to $(BINDIR)..."
+	mkdir -p $(BINDIR)
+	install -m 755 $(TARGET_SERVER) $(BINDIR)
 
 
 
