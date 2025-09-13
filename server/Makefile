@@ -1,6 +1,3 @@
-# this is a system for squashfs - you cant load a binary on a squashfs b/c of striping
-#
-#C_COMPILER=gcc
 
 UNITY_ROOT=test/Unity/
 
@@ -15,10 +12,8 @@ CFLAGS += -Wunreachable-code
 CFLAGS += -Winit-self
 CFLAGS += -Wmissing-field-initializers
 CFLAGS += -Wno-unknown-pragmas
-#CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wundef
 CFLAGS += -Wold-style-definition
-#CFLAGS += -Wno-misleading-indentation
 
 
 default: all
@@ -47,22 +42,16 @@ clean:
 all: clean $(TARGET_SERVER)
 
 $(TARGET_SERVER):
-	#$(info $(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(SERVER_OBJ))
-	#@($(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(SERVER_OBJ))
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $(TARGET_SERVER)
 
 test: server_test_runner
 	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -g $(TEST_SRC_FILES) -o $(TARGET_TEST)
 
-#test/test_runners/server_test_runner.c: test/server_test.c
 server_test_runner: test/server_test.c
 	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/server_test.c test/test_runners/server_test_runner.c
 	#$(info $(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(TEST_OBJ))
 	#@($(COMPILER_EXECUTABLE) -Wall $(CCFLAGS) $(TEST_OBJ))
 
-#install:
-#	install -d ${D}${bindir}
-#	install -m 755 $(TARGET_SERVER) ${D}${bindir}/
 
 
 

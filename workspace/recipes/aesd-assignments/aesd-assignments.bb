@@ -1,4 +1,3 @@
-# this is a system for squashfs - you cant load binary bc of striping
 
 # Recipe created by recipetool
 # This is the basis of a recipe and may need further editing in order to be fully functional.
@@ -35,8 +34,6 @@ do_compile () {
 
 do_install () {
 	# This is a guess; additional arguments may be required
-	# oe_runmake install
-
         install -d ${D}${bindir}
         install -m 0755 ${B}/aesdsocket ${D}${bindir}
 }

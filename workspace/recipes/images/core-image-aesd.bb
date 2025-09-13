@@ -1,6 +1,4 @@
-# this is a sysem for squash you cant load a binary on squash bc of striping
 inherit core-image
-#CORE_IMAGE_EXTRA_INSTALL += "aesd-assignments"
 CORE_IMAGE_EXTRA_INSTALL += "openssh"
 inherit extrausers
 # See https://docs.yoctoproject.org/singleindex.html#extrausers-bbclass
