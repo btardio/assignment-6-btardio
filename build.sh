@@ -26,8 +26,18 @@ fi
 bitbake-layers show-layers | grep "meta-aesd" > /dev/null
 layer_info=$?
 
-bitbake-layers remove-layer workspace
-bitbake-layers add-layer workspace
+echo $(pwd)
+echo $(pwd)
+echo $(pwd)
+echo $(pwd)
+echo $(pwd)
+echo $(pwd)
+
+
+bitbake-layers remove-layer ../workspace
+bitbake-layers add-layer ../workspace
+
+cd ..
 
 #if [ $layer_info -ne 0 ];then
 #	echo "Adding meta-aesd layer"
