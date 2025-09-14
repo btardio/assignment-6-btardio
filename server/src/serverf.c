@@ -430,11 +430,11 @@ int pmain(void) {
 
     time_t last_execution_time = time(NULL); // Initialize with current time
     last_execution_time += 10;
-    const double interval_seconds = 3.0; // Desired interval in seconds
+    const double interval_seconds = 10.0; // Desired interval in seconds
 
     while (1)
     {
-/*
+
         time_t current_time = time(NULL);
         double elapsed_time = difftime(current_time, last_execution_time);
 
@@ -442,7 +442,7 @@ int pmain(void) {
             append_time();
             last_execution_time = current_time; // Update last execution time
         }
-*/
+
         /* Block until input arrives on one or more active sockets. */
         read_fd_set = active_fd_set;
         if (select (FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0)
