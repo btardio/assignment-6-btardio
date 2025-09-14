@@ -51,6 +51,7 @@ set -e
 
 bitbake -c cleansstate aesd-assignments
 
-bitbake core-image-aesd -c cleansstate
+# bitbake core-image-aesd -c cleansstate
 
 bitbake core-image-aesd
+
