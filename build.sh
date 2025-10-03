@@ -51,11 +51,13 @@ cd ..
 #fi
 
 set -e
-# bitbake core-image-aesd
+######### bitbake core-image-aesd
 
-bitbake -c cleansstate aesd-assignments
+#bitbake -c cleansstate aesd-assignments
 
-# bitbake core-image-aesd -c cleansstate
+############# bitbake core-image-aesd -c cleansstate
+
+export GIT_CONFIG_PARAMETERS="'safe.directory=*'"
 
 bitbake core-image-aesd
 
