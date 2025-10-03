@@ -10,7 +10,7 @@ jobs:
         container:
           image: btardio/runnerimg:assignment6-yocto
       runs-on: self-hosted
-        steps:
+      steps:
           - uses: actions/checkout@v2
           - name: Checkout submodules
             run : git submodule update --init --recursive
