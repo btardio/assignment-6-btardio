@@ -4,15 +4,17 @@ on:
         tags-ignore:
             - '*'
         branches:
-            - '*'
+            - yocto
 jobs:
       full-test:
         container:
 	  image: btardio/runnerimg:assignment6-yocto
       runs-on: self-hosted
         steps:
-          - uses: actions/checkout@v2
+          - uses: actions/checkout@v3
           - name: Checkout submodules
+	    with:
+              ref: yocto
             run : git submodule update --init --recursive
           - name: Run full test
             run: ./full-test.sh
