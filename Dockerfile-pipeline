@@ -1,0 +1,12 @@
+FROM cuaesd/aesd-autotest:assignment6-yocto
+
+COPY id_ed25519.readonly /root/.ssh/id_ed25519
+RUN chmod 600 /root/.ssh/id_ed25519
+COPY github_known_hosts /github_known_hosts
+RUN apt-get update
+RUN apt-get install -y ssh
+RUN apt-get install -y sshpass
+RUN cat /github_known_hosts >> /root/.ssh/known_hosts
+
+# RUN useradd ubuntu
+
