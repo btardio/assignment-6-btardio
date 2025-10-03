@@ -7,6 +7,7 @@ git submodule sync
 git submodule update
 
 mv poky/meta/conf/sanity.conf ./
+touch poky/meta/conf/sanity.conf
 
 # local.conf won't exist until this step on first execution
 source poky/oe-init-build-env
