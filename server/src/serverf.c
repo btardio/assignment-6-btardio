@@ -76,11 +76,14 @@ struct entry;
 void sig_handler(int signo)
 {
     if (signo == SIGINT) {
+ 
         printf("Caught signal, exiting");
+        kill(getppid(), SIGUSR1);
         exit(0);
     }
     if (signo == SIGTERM) {
         printf("Caught signal, exiting");
+        kill(getppid(), SIGUSR1);
         exit(0);
     }
 }
@@ -335,7 +338,66 @@ void append_time(void) {
 }
 
 
+volatile sig_atomic_t keep_going = 1;
+
+
+int timer_thread() {
+/*
+    if (signal(SIGUSR1, timer_signal_handler) == SIG_ERR) {
+        log_and_print("Unable to create signal handler.\n");
+    }
+*/
+
+    time_t last_execution_time = time(NULL); // Initialize with current time
+    while (keep_going) {
+
+        //    last_execution_time += 10;
+        const double interval_seconds = 10.0; // Desired interval in seconds
+ 
+        time_t current_time = time(NULL);
+        double elapsed_time = difftime(current_time, last_execution_time);
+//        printf("elapsed_time: %d\n", elapsed_time);
+        if (elapsed_time >= interval_seconds) {
+    
+            append_time();
+            last_execution_time = current_time; // Update last execution time
+        }
+        sleep(.1);
+    }
+
+    printf("exiting timer_thread\n");
+
+}
+
+
+
+
+
+void timer_signal_handler(int signum) {
+    if (signum == SIGUSR1) {
+        printf("Main thread received SIGUSR1. Signaling thread to terminate.\n");
+        keep_going = 0; // Set the flag to stop the thread's loop
+    }
+}
+
 int pmain(void) {
+
+    // Set up the signal handler for SIGUSR1 in the parent process
+    struct sigaction sa;
+    sa.sa_handler = timer_signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+
+    pid_t timer_pid = fork();
+
+    if (timer_pid < 0) { perror("fork failed"); exit(EXIT_FAILURE); } else if (timer_pid == 0) { 
+
+//    } else 
+//    { //parent process 
 
     if (sem_init(&mutex, 0, 1) != 0) {
         perror("sem_init failed");
@@ -428,20 +490,21 @@ int pmain(void) {
 
     int status = 0;
 
-    time_t last_execution_time = time(NULL); // Initialize with current time
-    last_execution_time += 10;
-    const double interval_seconds = 10.0; // Desired interval in seconds
+//    time_t last_execution_time = time(NULL); // Initialize with current time
+//    last_execution_time += 10;
+//    const double interval_seconds = 10.0; // Desired interval in seconds
 
     while (1)
     {
 
-        time_t current_time = time(NULL);
-        double elapsed_time = difftime(current_time, last_execution_time);
-
-        if (elapsed_time >= interval_seconds) {
-            append_time();
-            last_execution_time = current_time; // Update last execution time
-        }
+//        time_t current_time = time(NULL);
+//        double elapsed_time = difftime(current_time, last_execution_time);
+//        printf("elapsed_time: %d\n", elapsed_time);
+//        if (elapsed_time >= interval_seconds) {
+//            
+//            append_time();
+//            last_execution_time = current_time; // Update last execution time
+//        }
 
         /* Block until input arrives on one or more active sockets. */
         read_fd_set = active_fd_set;
@@ -453,8 +516,21 @@ int pmain(void) {
 
         int i;
         /* Service all the sockets with input pending. */
-        for (i = 0; i < FD_SETSIZE; ++i)
+        for (i = -1; i < FD_SETSIZE; ++i)
         {
+            if ( i == -1 ) {
+    
+//                double elapsed_time = difftime(current_time, last_execution_time);
+//                printf("elapsed_time: %d\n", elapsed_time);
+//                if (elapsed_time >= interval_seconds) {
+//                    append_time();
+//                    last_execution_time = current_time; // Update last execution time
+//                }
+
+
+//                printf("elapse: %d\n", difftime(current_time, last_execution_time));
+                continue;
+            }
             if (FD_ISSET (i, &read_fd_set))
             {
                 if (i == s_fd)
@@ -545,6 +621,15 @@ int pmain(void) {
             exit(1);
         }
 	
+//        kill(getppid(), SIGUSR1);
+    }
+    } else { // fork
+    
+        timer_thread();    
+
+        exit(EXIT_SUCCESS);        
+             
+    
 
     }
 }
