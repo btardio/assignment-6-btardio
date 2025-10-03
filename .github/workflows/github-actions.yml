@@ -4,7 +4,7 @@ on:
         tags-ignore:
             - '*'
         branches:
-            - yocto
+            - 'yocto'
 jobs:
       full-test:
         container:
@@ -13,8 +13,6 @@ jobs:
         steps:
           - uses: actions/checkout@v3
           - name: Checkout submodules
-	    with:
-              ref: yocto
             run : git submodule update --init --recursive
           - name: Run full test
             run: ./full-test.sh
