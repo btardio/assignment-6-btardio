@@ -29,6 +29,7 @@ layer_info=$?
 echo $(pwd)
 echo $(pwd)
 echo $(pwd)
+touch poky/meta/conf/sanity.conf
 echo $(pwd)
 echo $(pwd)
 echo $(pwd)
