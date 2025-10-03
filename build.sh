@@ -53,10 +53,12 @@ cd ..
 set -e
 ######### bitbake core-image-aesd
 
-#bitbake -c cleansstate aesd-assignments
+export GIT_CONFIG_PARAMETERS="'safe.directory=*'"
+git config --global --add safe.directory '*'
+bitbake -c cleansstate aesd-assignments
 
 ############# bitbake core-image-aesd -c cleansstate
-
+git config --global --add safe.directory '*'
 export GIT_CONFIG_PARAMETERS="'safe.directory=*'"
 
 bitbake core-image-aesd
