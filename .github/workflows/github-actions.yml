@@ -4,7 +4,7 @@ on:
         tags-ignore:
             - '*'
         branches:
-            - 'yocto'
+            - '*'
 jobs:
       full-test:
         container:
