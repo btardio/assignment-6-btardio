@@ -9,8 +9,8 @@ jobs:
       full-test:
         container:
           image: btardio/runnerimg:assignment6-yocto
-      runs-on: self-hosted
-      steps:
+        runs-on: self-hosted
+        steps:
           - uses: actions/checkout@v2
             with:
               ref: yocto
