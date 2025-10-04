@@ -14,7 +14,8 @@ LIC_FILES_CHKSUM = ""
 
 
 # No information for SRC_URI yet (only an external source tree was specified)
-SRC_URI = "https://github.com/btardio/assignment-6-btardio.git;branch=yocto"
+SRC_URI = "git@github.com:btardio/assignment-6-btardio.git"
+# ;branch=yocto"
 SRCREV = "0c3cfa4f3b589a55f8df66962efae5cc658e330e"
 
 
