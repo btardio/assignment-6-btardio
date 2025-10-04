@@ -78,12 +78,18 @@ void sig_handler(int signo)
     if (signo == SIGINT) {
  
         printf("Caught signal, exiting");
-        kill(getppid(), SIGUSR1);
+        int pid = getppid();
+        if (pid != 0 && pid != 1) {
+            kill(getppid(), SIGUSR1);
+        }
         exit(0);
     }
     if (signo == SIGTERM) {
         printf("Caught signal, exiting");
-        kill(getppid(), SIGUSR1);
+        int pid = getppid();
+        if (pid != 0 && pid != 1) {
+            kill(getppid(), SIGUSR1);
+        }
         exit(0);
     }
 }
