@@ -5,8 +5,10 @@
 
 # WARNING: the following LICENSE and LIC_FILES_CHKSUM values are best guesses - it is
 # your responsibility to verify that the values are complete and correct.
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=fc0af5c24a227c46b9a3ff1927c4dc94"
+NO_GENERIC_LICENSE = "1"
+#LICENSE = "MIT"
+# LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=fc0af5c24a227c46b9a3ff1927c4dc94"
+
 
 # No information for SRC_URI yet (only an external source tree was specified)
 SRC_URI = "https://github.com/btardio/assignment-6-btardio.git;branch=yocto"
